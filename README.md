@@ -64,6 +64,12 @@ To run in headless mode and save the reconstruction, use the below command.
 python demo_reconstruction.py --imagedir=data/sfm_bench/rgb --calib=calib/eth.txt --reconstruction_path sfm_bench --disable_vis
 ```
 
+For batch generation using submitit, use the below command.
+
+```Python
+python run_droid_slam.py --imagedir=/checkpoint/cywu/ego4d_subsets_for_sfm/easy9_10fps/ --calib=/checkpoint/jcjohns/ego4d_subsets_for_sfm/hloc/easy9_10fps --outputdir=/checkpoint/shoubhikdn/3D/sfm/ego4d_subsets_for_sfm_droid_slam/easy9_10fps/ --disable_vis --stride 1 --filter_thresh 0.005 --num-workers 4
+```
+
 Run the demo on any of the samples (all demos can be run on a GPU with 11G of memory). While running, press the "s" key to increase the filtering threshold (= more points) and "a" to decrease the filtering threshold (= fewer points). To save the reconstruction with full resolution depth maps use the `--reconstruction_path` flag.
 
 
