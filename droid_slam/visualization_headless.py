@@ -115,6 +115,6 @@ def droid_visualization(video, device="cuda:0"):
         droid_visualization.ix += 1
     all_pts_np = np.array(all_pts)
     all_clr_np = np.array(all_clr)
-    # print("Final shape: ", all_pts_np.shape, " : ", all_clr_np.shape)
+    print("Final shape: ", all_pts_np.shape, " : ", all_clr_np.shape)
     all_point_actor = create_point_actor(all_pts_np, all_clr_np)
     return all_point_actor

@@ -77,6 +77,7 @@ def main():
     parser.add_argument("--imagedir", type=Path, help="path to image directory")
     parser.add_argument("--outputdir", type=Path, help="path to save reconstruction")
     parser.add_argument("--calib", type=Path, help="path to calibration file")
+    parser.add_argument("--calib_method", help="ctrlc,colmap", default="ctrlc")
     parser.add_argument("--t0", default=0, type=int, help="starting frame")
     parser.add_argument("--stride", default=3, type=int, help="frame stride")
 
@@ -114,6 +115,7 @@ def main():
     out_dirs = [args.outputdir / p.name for p in img_dirs]
 
     if args.num_workers == 0:
+        print(args.calib_method)
         for imagedir, outputdir in zip(img_dirs, out_dirs):
             reconstruct(args, imagedir, outputdir)
     else:
@@ -206,14 +208,20 @@ def reconstruct(args, imagedir, outputdir):
     from droid import Droid
     from visualization_headless import droid_visualization
     print("Processing: ", imagedir)
+    output_file = "{}/output.ply".format(outputdir)
+    if os.path.isfile(output_file):
+        print("Output file already exists! Skipping.")
+        return
     calibfile = "{}/{}/cameras.txt".format(args.calib, imagedir.name)
+    if args.calib_method == "ctrlc":
+        calibfile = "{}/{}.npy".format(args.calib, imagedir.name)
     print("Calib: ", calibfile)
     if not os.path.isfile(calibfile):
         print("Camera file not found! Skipping.")
         return
     droid = None
     tstamps = []
-    calib = parse_calib(calibfile)
+    calib = np.load(calibfile) if args.calib_method == "ctrlc" else parse_calib(calibfile)
     for (t, image, intrinsics) in tqdm(image_stream(imagedir, calib, args.stride)):
         if t < args.t0:
             continue
@@ -228,9 +236,13 @@ def reconstruct(args, imagedir, outputdir):
         traj_est = droid.terminate(image_stream(imagedir, calib, args.stride))
 
     if outputdir is not None:
-        save_reconstruction(droid, outputdir)
-        pcd = droid_visualization(droid.video)
-        o3d.io.write_point_cloud("{}/output.ply".format(outputdir), pcd)
+        try:
+            save_reconstruction(droid, outputdir)
+            pcd = droid_visualization(droid.video)
+            o3d.io.write_point_cloud(output_file, pcd)
+        except:
+            print("Failed to save reconstructions!")
+            return
 
 if __name__ == '__main__':
     main()
